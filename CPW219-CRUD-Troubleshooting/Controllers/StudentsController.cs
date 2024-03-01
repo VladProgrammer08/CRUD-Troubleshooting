@@ -1,5 +1,6 @@
 ﻿using CPW219_CRUD_Troubleshooting.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CPW219_CRUD_Troubleshooting.Controllers
 {
@@ -15,9 +16,10 @@ namespace CPW219_CRUD_Troubleshooting.Controllers
         public IActionResult Index()
         {
             List<Student> products = StudentDb.GetStudents(context);
-            return View();
+            return View(products);
         }
 
+        [HttpGet]
         public IActionResult Create()
         {
             return View();
@@ -29,6 +31,7 @@ namespace CPW219_CRUD_Troubleshooting.Controllers
             if (ModelState.IsValid)
             {
                 StudentDb.Add(p, context);
+                context.SaveChanges();
                 ViewData["Message"] = $"{p.Name} was added!";
                 return View();
             }
@@ -43,7 +46,7 @@ namespace CPW219_CRUD_Troubleshooting.Controllers
             Student p = StudentDb.GetStudent(context, id);
 
             //show it on web page
-            return View();
+            return View(p);
         }
 
         [HttpPost]
@@ -52,8 +55,8 @@ namespace CPW219_CRUD_Troubleshooting.Controllers
             if (ModelState.IsValid)
             {
                 StudentDb.Update(context, p);
-                ViewData["Message"] = "Product Updated!";
-                return View(p);
+                TempData["Message"] = p.Name + " was updated successfully";
+                return RedirectToAction("Index");
             }
             //return view with errors
             return View(p);
@@ -62,6 +65,10 @@ namespace CPW219_CRUD_Troubleshooting.Controllers
         public IActionResult Delete(int id)
         {
             Student p = StudentDb.GetStudent(context, id);
+            if (p == null)
+            {
+                return NotFound();
+            }
             return View(p);
         }
 
@@ -73,6 +80,7 @@ namespace CPW219_CRUD_Troubleshooting.Controllers
 
             StudentDb.Delete(context, p);
 
+            TempData["Message"] = p.Name + " was deleted successfully";
             return RedirectToAction("Index");
         }
     }
